@@ -1,0 +1,36 @@
+{
+  "missing_local_imports": 0,
+  "nav_missing": 0,
+  "duplicate_table_defs": [],
+  "rpc_calls": 10,
+  "rpc_contract_errors": [],
+  "direct_screen_db": [],
+  "syntax_fail": [],
+  "legacy_firestore_hits": [],
+  "checks": {
+    "store_code_default": true,
+    "billing_rate_001": true,
+    "billing_threshold_500": true,
+    "order_states_canonical": true,
+    "review_first4_runtime": false,
+    "image_function_payload_aligned": true,
+    "chat_screen_via_service": true,
+    "orders_realtime": true
+  },
+  "final_contract_checks": {
+    "store_code_database_default": true,
+    "billing_rate": 0.001,
+    "billing_threshold_dzd": 500,
+    "canonical_order_states": [
+      "pending",
+      "shipping",
+      "delivered",
+      "completed",
+      "out_of_stock",
+      "cancelled"
+    ],
+    "image_search_payload_key": "imageBase64",
+    "product_reviews_default_limit": 4,
+    "screen_direct_supabase_access": 0
+  }
+}

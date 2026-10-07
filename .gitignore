@@ -1,0 +1,40 @@
+# ── Environment / secrets ────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Dependencies ─────────────────────────────────────────────────────
+node_modules/
+
+# ── Expo ─────────────────────────────────────────────────────────────
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# ── Native builds ────────────────────────────────────────────────────
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+ios/build/
+ios/Pods/
+
+# ── Metro / Yarn ─────────────────────────────────────────────────────
+.metro-health-check*
+yarn-error.log
+npm-debug.log*
+
+# ── macOS ────────────────────────────────────────────────────────────
+.DS_Store
+
+# ── Editors ──────────────────────────────────────────────────────────
+.vscode/
+.idea/
+
+# ── Firebase (retired keys, no longer used) ─────────────────────────
+google-services.json
+
+# Expo CNG / prebuild: native projects are generated during build
+android/
+ios/

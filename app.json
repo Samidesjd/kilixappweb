@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "Kilix",
+    "slug": "kilix-app",
+    "version": "1.0.1",
+    "scheme": "kilix",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/images/kilix-app-icon.png",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kilix.app"
+    },
+    "android": {
+      "package": "com.kilix.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#F7F8FA"
+      },
+      "softwareKeyboardLayoutMode": "resize"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FF6B00",
+          "image": "./assets/images/kilix-splash.png",
+          "imageWidth": 300
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow Kilix to access your photos.",
+          "savePhotosPermission": "Allow Kilix to save photos to your gallery."
+        }
+      ],
+      "./plugins/withKilixSplashFallback.js"
+    ],
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "name": "Kilix",
+      "shortName": "Kilix",
+      "favicon": "./assets/images/kilix-app-icon.png"
+    }
+  }
+}

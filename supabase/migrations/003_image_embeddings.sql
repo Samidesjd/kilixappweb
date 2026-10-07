@@ -1,0 +1,2 @@
+-- Canonical schema is defined in 000_canonical_schema.sql.
+-- Kept as empty compatibility migrations so a fresh Supabase project applies one schema contract only.
