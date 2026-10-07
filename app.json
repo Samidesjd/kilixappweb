@@ -45,6 +45,9 @@
       "name": "Kilix",
       "shortName": "Kilix",
       "favicon": "./assets/images/kilix-app-icon.png"
+    },
+    "experiments": {
+      "baseUrl": "/kilixappweb"
     }
   }
 }
