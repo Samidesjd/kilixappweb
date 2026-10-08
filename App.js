@@ -68,11 +68,16 @@ function LanguageGate() {
                   },
                   getInitialURL: async () => {
                     if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                      const hash = window.location.hash || '';
-                      if (hash.startsWith('#/')) {
-                        const path = hash.slice(1);
-                        return window.location.origin + path;
+                      // GitHub Pages safely serves the root page with a query string.
+                      // Convert ?product=ID into the internal ProductDetail route
+                      // before React Navigation resolves the initial state.
+                      const url = new URL(window.location.href);
+                      const productId = url.searchParams.get('product');
+
+                      if (productId) {
+                        return `${url.origin}/kilixappweb/product/${encodeURIComponent(productId)}`;
                       }
+
                       return window.location.href;
                     }
 
