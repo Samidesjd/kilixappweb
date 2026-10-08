@@ -4,7 +4,7 @@ import React from 'react';
 import { I18nManager, View, StyleSheet, Text, Pressable, ActivityIndicator, Modal, Platform, Linking } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
-import { NavigationContainer, CommonActions } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import {
   useFonts as useCairoFonts,
@@ -47,35 +47,19 @@ function getWebProductId() {
   return null;
 }
 
-function WebProductRouteHandler() {
-  const { initializing } = useAuth();
+function getWebInitialNavigationState() {
+  const productId = getWebProductId();
+  if (!productId) return undefined;
 
-  React.useEffect(() => {
-    if (Platform.OS !== 'web' || initializing || typeof window === 'undefined') return undefined;
-    const productId = getWebProductId();
-    if (!productId) return undefined;
-
-    let attempts = 0;
-    const openProduct = () => {
-      attempts += 1;
-      if (!navigationRef.isReady()) {
-        if (attempts < 40) setTimeout(openProduct, 100);
-        return;
-      }
-
-      navigationRef.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: 'ProductDetail', params: { id: productId } }],
-        })
-      );
-    };
-
-    const timer = setTimeout(openProduct, 0);
-    return () => clearTimeout(timer);
-  }, [initializing]);
-
-  return null;
+  return {
+    index: 0,
+    routes: [
+      {
+        name: 'ProductDetail',
+        params: { id: productId },
+      },
+    ],
+  };
 }
 
 function LanguageGate() {
@@ -102,6 +86,7 @@ function LanguageGate() {
               <StatusBar style="dark" />
               <NavigationContainer
                 ref={navigationRef}
+                initialState={Platform.OS === 'web' ? getWebInitialNavigationState() : undefined}
                 linking={Platform.OS === 'web' ? undefined : {
                   prefixes: [
                     'https://samidesjd.github.io/kilixappweb',
@@ -115,7 +100,6 @@ function LanguageGate() {
                 }}
               >
                 <RootNavigator />
-                <WebProductRouteHandler />
               </NavigationContainer>
 
               {!hasSavedLanguage && (
