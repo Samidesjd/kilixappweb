@@ -4,7 +4,7 @@ import React from 'react';
 import { I18nManager, View, StyleSheet, Text, Pressable, ActivityIndicator, Modal, Platform, Linking } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, getPathFromState, getStateFromPath } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import {
   useFonts as useCairoFonts,
@@ -68,20 +68,38 @@ function LanguageGate() {
                   },
                   getInitialURL: async () => {
                     if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                      // GitHub Pages safely serves the root page with a query string.
-                      // Convert ?product=ID into the internal ProductDetail route
-                      // before React Navigation resolves the initial state.
-                      const url = new URL(window.location.href);
-                      const productId = url.searchParams.get('product');
-
-                      if (productId) {
-                        return `${url.origin}/kilixappweb/product/${encodeURIComponent(productId)}`;
-                      }
-
                       return window.location.href;
                     }
-
                     return Linking.getInitialURL();
+                  },
+                  getPathFromState: (state, options) => {
+                    const route = state?.routes?.[state.index ?? 0];
+                    if (route?.name === 'ProductDetail') {
+                      const id = route.params?.id || route.params?.productId || route.params?.product?.id;
+                      if (id) {
+                        return `?product=${encodeURIComponent(String(id))}`;
+                      }
+                    }
+                    return getPathFromState(state, options);
+                  },
+                  getStateFromPath: (path, options) => {
+                    const queryIndex = path.indexOf('?');
+                    if (queryIndex !== -1) {
+                      const query = path.slice(queryIndex + 1);
+                      const params = new URLSearchParams(query);
+                      const productId = params.get('product');
+                      if (productId) {
+                        return {
+                          routes: [
+                            {
+                              name: 'ProductDetail',
+                              params: { id: productId },
+                            },
+                          ],
+                        };
+                      }
+                    }
+                    return getStateFromPath(path, options);
                   },
                 }}
               >
