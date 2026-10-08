@@ -564,7 +564,7 @@ export default function ProductDetailScreen({ route, navigation }) {
         ? window.location.origin + '/kilixappweb'
         : 'https://samidesjd.github.io/kilixappweb';
       // GitHub Pages-safe share URL: the hash keeps the server on the root page on refresh.
-      const productUrl = `${baseUrl}/#/product/${encodeURIComponent(String(product.id))}`;
+      const productUrl = `${baseUrl}/?product=${encodeURIComponent(String(product.id))}`;
 
       await Share.share({
         title: product.title || 'تفاصيل المنتج',
