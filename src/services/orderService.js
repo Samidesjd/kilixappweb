@@ -29,21 +29,45 @@ const mapOrder = (row) => ({
 });
 
 export async function createOrder({ storeId, productId, customerName, phone, deliveryType, wilaya, commune, streetAddress, notes, quantity, details }) {
-  const { data, error } = await supabase.rpc('create_order', {
-    p_store_id: storeId,
-    p_product_id: productId,
-    p_customer_name: customerName,
-    p_phone: phone,
-    p_delivery_type: deliveryType,
-    p_wilaya: wilaya,
-    p_commune: commune,
-    p_street_address: streetAddress || null,
-    p_notes: notes || '',
-    p_quantity: quantity,
-    p_details: details || [],
-  });
-  if (error) throw error;
-  return mapOrder(data);
+  // The database currently requires an authenticated uid for create_order.
+  // For a visitor, create a temporary anonymous Supabase session so the
+  // customer can complete checkout without creating an account.
+  let { data: sessionData } = await supabase.auth.getSession();
+  let guestSession = false;
+
+  if (!sessionData?.session?.user?.id) {
+    const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
+    if (anonError) {
+      throw new Error('تعذر إنشاء جلسة الطلب للزائر. يرجى المحاولة مرة أخرى.');
+    }
+    if (!anonData?.session?.user?.id) {
+      throw new Error('تعذر إنشاء جلسة الطلب للزائر.');
+    }
+    guestSession = true;
+  }
+
+  try {
+    const { data, error } = await supabase.rpc('create_order', {
+      p_store_id: storeId,
+      p_product_id: productId,
+      p_customer_name: customerName,
+      p_phone: phone,
+      p_delivery_type: deliveryType,
+      p_wilaya: wilaya,
+      p_commune: commune,
+      p_street_address: streetAddress || null,
+      p_notes: notes || '',
+      p_quantity: quantity,
+      p_details: details || [],
+    });
+    if (error) throw error;
+    return { ...mapOrder(data), guestOrder: guestSession };
+  } finally {
+    // Do not leave an anonymous account signed in after checkout.
+    if (guestSession) {
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+    }
+  }
 }
 
 export async function getMyOrders(userId, { limit = 50, offset = 0 } = {}) {
