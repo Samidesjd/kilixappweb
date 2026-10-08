@@ -674,6 +674,7 @@ export default function ProductDetailScreen({ route, navigation }) {
         notes: notes.trim(),
         quantity: totalQty,
         details: orderDetails,
+        guest: !isAuthenticated || !!user?.isGuest,
       });
 
       const completedAsGuest = !isAuthenticated || !!user?.isGuest;
