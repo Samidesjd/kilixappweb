@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import '@expo/metro-runtime';
 import React from 'react';
-import { I18nManager, View, StyleSheet, Text, Pressable, ActivityIndicator, Modal } from 'react-native';
+import { I18nManager, View, StyleSheet, Text, Pressable, ActivityIndicator, Modal, Platform, Linking } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { NavigationContainer } from '@react-navigation/native';
@@ -65,6 +65,18 @@ function LanguageGate() {
                     screens: {
                       ProductDetail: 'product/:id',
                     },
+                  },
+                  getInitialURL: async () => {
+                    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                      const hash = window.location.hash || '';
+                      if (hash.startsWith('#/')) {
+                        const path = hash.slice(1);
+                        return window.location.origin + path;
+                      }
+                      return window.location.href;
+                    }
+
+                    return Linking.getInitialURL();
                   },
                 }}
               >
