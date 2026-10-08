@@ -55,7 +55,19 @@ function LanguageGate() {
           <FavoritesProvider>
             <View style={[styles.container, { backgroundColor: colors.background }]}>
               <StatusBar style="dark" />
-              <NavigationContainer>
+              <NavigationContainer
+                linking={{
+                  prefixes: [
+                    'https://samidesjd.github.io/kilixappweb',
+                    'kilix://',
+                  ],
+                  config: {
+                    screens: {
+                      ProductDetail: 'product/:id',
+                    },
+                  },
+                }}
+              >
                 <RootNavigator />
               </NavigationContainer>
 
