@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Kilix</title>
 </head>
 <body>
@@ -11,16 +14,15 @@
     (function () {
       var base = '/kilixappweb/';
       var path = window.location.pathname;
-      var productPrefix = base + 'product/';
-
-      if (path.indexOf(productPrefix) === 0) {
-        var productId = path.slice(productPrefix.length);
-        var hashTarget = base + '#/product/' + productId + window.location.search;
-        window.location.replace(hashTarget);
-      } else {
-        window.location.replace(base);
+      var target = new URL(base, window.location.origin);
+      var marker = base + 'product/';
+      if (path.indexOf(marker) === 0) {
+        var productId = path.slice(marker.length).split('/')[0];
+        if (productId) target.searchParams.set('product', productId);
       }
+      window.location.replace(target.toString());
     })();
   </script>
+  <noscript><meta http-equiv="refresh" content="0;url=/kilixappweb/" /></noscript>
 </body>
 </html>
