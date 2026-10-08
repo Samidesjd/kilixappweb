@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kilix</title>
+  <script>
+    // GitHub Pages returns this file for client-side routes such as
+    // /kilixappweb/product/<id>. Load the SPA entry point while preserving
+    // the original URL so React Navigation can resolve the product route.
+    (function () {
+      var base = '/kilixappweb/';
+      var target = base;
+
+      fetch(target, { credentials: 'same-origin' })
+        .then(function (response) {
+          if (!response.ok) throw new Error('Unable to load Kilix');
+          return response.text();
+        })
+        .then(function (html) {
+          document.open();
+          document.write(html);
+          document.close();
+          window.history.replaceState(
+            null,
+            '',
+            window.location.pathname + window.location.search + window.location.hash
+          );
+        })
+        .catch(function () {
+          window.location.replace(target);
+        });
+    })();
+  </script>
+</head>
+<body>
+  <p>Loading Kilix...</p>
+</body>
+</html>
