@@ -4,7 +4,7 @@ import React from 'react';
 import { I18nManager, View, StyleSheet, Text, Pressable, ActivityIndicator, Modal, Platform, Linking } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import {
   useFonts as useCairoFonts,
@@ -34,6 +34,18 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 
 const navigationRef = React.createRef();
+
+function getWebProductId() {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
+  const url = new URL(window.location.href);
+  const queryId = url.searchParams.get('product');
+  if (queryId) return queryId;
+  const marker = '/kilixappweb/product/';
+  if (url.pathname.indexOf(marker) === 0) {
+    return decodeURIComponent(url.pathname.slice(marker.length).split('/')[0] || '');
+  }
+  return null;
+}
 
 function LanguageGate() {
   const { language, setLanguage, languages, isLanguageReady, hasSavedLanguage } = useLanguage();
@@ -72,11 +84,16 @@ function LanguageGate() {
                 }}
                 onReady={() => {
                   if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                    const productId = new URL(window.location.href).searchParams.get('product');
+                    const productId = getWebProductId();
                     if (productId) {
                       setTimeout(() => {
                         if (navigationRef.isReady()) {
-                          navigationRef.navigate('ProductDetail', { id: productId });
+                          navigationRef.dispatch(
+                            CommonActions.reset({
+                              index: 0,
+                              routes: [{ name: 'ProductDetail', params: { id: productId } }],
+                            })
+                          );
                         }
                       }, 0);
                     }
