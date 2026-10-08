@@ -47,6 +47,37 @@ function getWebProductId() {
   return null;
 }
 
+function WebProductRouteHandler() {
+  const { initializing } = useAuth();
+
+  React.useEffect(() => {
+    if (Platform.OS !== 'web' || initializing || typeof window === 'undefined') return undefined;
+    const productId = getWebProductId();
+    if (!productId) return undefined;
+
+    let attempts = 0;
+    const openProduct = () => {
+      attempts += 1;
+      if (!navigationRef.isReady()) {
+        if (attempts < 40) setTimeout(openProduct, 100);
+        return;
+      }
+
+      navigationRef.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'ProductDetail', params: { id: productId } }],
+        })
+      );
+    };
+
+    const timer = setTimeout(openProduct, 0);
+    return () => clearTimeout(timer);
+  }, [initializing]);
+
+  return null;
+}
+
 function LanguageGate() {
   const { language, setLanguage, languages, isLanguageReady, hasSavedLanguage } = useLanguage();
 
@@ -82,25 +113,9 @@ function LanguageGate() {
                     },
                   },
                 }}
-                onReady={() => {
-                  if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                    const productId = getWebProductId();
-                    if (productId) {
-                      setTimeout(() => {
-                        if (navigationRef.isReady()) {
-                          navigationRef.dispatch(
-                            CommonActions.reset({
-                              index: 0,
-                              routes: [{ name: 'ProductDetail', params: { id: productId } }],
-                            })
-                          );
-                        }
-                      }, 0);
-                    }
-                  }
-                }}
               >
                 <RootNavigator />
+                <WebProductRouteHandler />
               </NavigationContainer>
 
               {!hasSavedLanguage && (
