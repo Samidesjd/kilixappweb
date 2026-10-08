@@ -36,8 +36,40 @@ jobs:
       - name: Build Expo Web
         run: npx expo export --platform web
 
-      - name: Add GitHub Pages SPA fallback
-        run: cp dist/index.html dist/404.html
+      - name: Add GitHub Pages deep-link fallback
+        shell: bash
+        run: |
+          cat > dist/404.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Kilix</title>
+          </head>
+          <body>
+            <p>Loading Kilix...</p>
+            <script>
+              (function () {
+                var base = '/kilixappweb/';
+                var path = window.location.pathname;
+                var productMarker = '/product/';
+                var productIndex = path.indexOf(productMarker);
+                var target = base;
+
+                if (productIndex !== -1) {
+                  var id = path.slice(productIndex + productMarker.length).split('/')[0];
+                  if (id) {
+                    target += '?product=' + encodeURIComponent(id);
+                  }
+                }
+
+                window.location.replace(target);
+              })();
+            </script>
+          </body>
+          </html>
+          EOF
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
