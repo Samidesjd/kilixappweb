@@ -51,6 +51,15 @@ export default function RootNavigator() {
 
   // تحديد الشاشة الأولى بشكل صارم وآمن تماماً
   const getInitialRoute = () => {
+    // A shared product URL must open the product itself, even for guests.
+    // RootNavigator is mounted only after auth initialization, so this is
+    // the reliable point to choose ProductDetail as the first route.
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      const productId = url.searchParams.get('product');
+      const pathMatch = url.pathname.match(/\/kilixappweb\/product\/([^/]+)/);
+      if (productId || pathMatch?.[1]) return 'ProductDetail';
+    }
     if (!isAuthenticated || !user) return 'Welcome';
     return 'Main';
   };
