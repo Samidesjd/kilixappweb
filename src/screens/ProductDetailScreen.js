@@ -383,7 +383,7 @@ export default function ProductDetailScreen({ route, navigation }) {
   const variantGroups = useMemo(() => getProductVariantGroups(product) || [], [product]);
   const { addItem } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   const [groups, setGroups] = useState([makeEmptyGroup(1)]);
   useEffect(() => {
@@ -407,6 +407,7 @@ export default function ProductDetailScreen({ route, navigation }) {
   const [formError, setFormError] = useState('');
   const [submittingOrder, setSubmittingOrder] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [guestOrderCompleted, setGuestOrderCompleted] = useState(false);
 
   const fav = product ? isFavorite(product.id) : false;
   const priceVal = Number(product?.price) || 0;
@@ -581,10 +582,10 @@ export default function ProductDetailScreen({ route, navigation }) {
       setFormError('هذا المنتج لم يعد متاحاً من طرف التاجر.');
       return;
     }
-    if (user && user.isGuest) {
-      setGuestAuthVisible(true);
-      return;
-    }
+    // Guests can place an order normally. Account creation is offered only
+    // after the order has been successfully submitted.
+    setGuestAuthVisible(false);
+    setGuestOrderCompleted(false);
     setStep('CUSTOMIZE');
     setGroups([makeEmptyGroup(orderMinQuantity)]);
     setShowErrors(false);
@@ -675,7 +676,11 @@ export default function ProductDetailScreen({ route, navigation }) {
         details: orderDetails,
       });
 
-      if (product) groups.forEach((g) => addItem(product, g.qty, g.variants));
+      const completedAsGuest = !isAuthenticated || !!user?.isGuest;
+      if (!completedAsGuest && product) {
+        groups.forEach((g) => addItem(product, g.qty, g.variants));
+      }
+      setGuestOrderCompleted(completedAsGuest);
       setStep('SUCCESS');
     } catch (error) {
       if (__DEV__) console.error('Error creating order:', error);
@@ -1237,13 +1242,26 @@ export default function ProductDetailScreen({ route, navigation }) {
                 <TText style={s.successSub}>
                   تم تسجيل طلبك ومعالجته بنجاح، سنتواصل معك قريباً لتأكيد التوصيل.
                 </TText>
-                <PrimaryButton title="الذهاب إلى السلة" variant="navy" onPress={goToCart} />
-                <PrimaryButton
-                  title="متابعة التسوق"
-                  variant="outline"
-                  onPress={continueShopping}
-                  style={{ marginTop: spacing.sm }}
-                />
+                {guestOrderCompleted ? (
+                  <PrimaryButton
+                    title="إنشاء حساب"
+                    variant="navy"
+                    onPress={() => {
+                      setModalVisible(false);
+                      navigation.navigate('Welcome');
+                    }}
+                  />
+                ) : (
+                  <>
+                    <PrimaryButton title="الذهاب إلى السلة" variant="navy" onPress={goToCart} />
+                    <PrimaryButton
+                      title="متابعة التسوق"
+                      variant="outline"
+                      onPress={continueShopping}
+                      style={{ marginTop: spacing.sm }}
+                    />
+                  </>
+                )}
               </View>
             )}
           </View>
