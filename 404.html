@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kilix</title>
+</head>
+<body>
+  <p>Loading Kilix...</p>
+  <script>
+    (function () {
+      var base = '/kilixappweb/';
+      var path = window.location.pathname;
+      var productPrefix = base + 'product/';
+
+      if (path.indexOf(productPrefix) === 0) {
+        var productId = path.slice(productPrefix.length);
+        var hashTarget = base + '#/product/' + productId + window.location.search;
+        window.location.replace(hashTarget);
+      } else {
+        window.location.replace(base);
+      }
+    })();
+  </script>
+</body>
+</html>
