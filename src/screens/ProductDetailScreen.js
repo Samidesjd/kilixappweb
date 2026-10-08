@@ -563,7 +563,8 @@ export default function ProductDetailScreen({ route, navigation }) {
       const baseUrl = Platform.OS === 'web' && typeof window !== 'undefined'
         ? window.location.origin + '/kilixappweb'
         : 'https://samidesjd.github.io/kilixappweb';
-      const productUrl = `${baseUrl}/product/${encodeURIComponent(String(product.id))}`;
+      // GitHub Pages-safe share URL: the hash keeps the server on the root page on refresh.
+      const productUrl = `${baseUrl}/#/product/${encodeURIComponent(String(product.id))}`;
 
       await Share.share({
         title: product.title || 'تفاصيل المنتج',
