@@ -350,13 +350,12 @@ export default function ProductDetailScreen({ route, navigation }) {
   const product = loadedProduct || routeProduct;
   useEffect(() => {
     let active = true;
-    const id = routeProduct?.id;
-    if (!id) return undefined;
+    const productId = route.params?.productId || route.params?.id || routeProduct?.id;
+    if (!productId) return undefined;
 
-    // Always hydrate from the authoritative product row so the order dialog
-    // displays the exact options published by the merchant (sizes/colors/RAM/storage)
-    // and the real product images, regardless of how the screen was navigated to.
-    void getProduct(id)
+    // Load the authoritative product row. This also supports direct web
+    // links such as /product/<id>, where no product object was passed in navigation.
+    void getProduct(productId)
       .then((row) => {
         if (!active || !row || row.is_active === false) {
           if (active) { setLoadedProduct(null); setProductUnavailable(true); }
@@ -364,7 +363,7 @@ export default function ProductDetailScreen({ route, navigation }) {
         }
         setProductUnavailable(false);
         setLoadedProduct({
-          ...routeProduct,
+          ...(routeProduct || {}),
           ...row,
           storeId: row.store_id || routeProduct?.storeId,
           store_id: row.store_id || routeProduct?.store_id,
@@ -373,7 +372,7 @@ export default function ProductDetailScreen({ route, navigation }) {
       .catch(() => { if (active) { setLoadedProduct(null); setProductUnavailable(true); } });
 
     return () => { active = false; };
-  }, [routeProduct]);
+  }, [route.params?.productId, route.params?.id, routeProduct?.id]);
 
   const galleryImages = product?.images?.length
     ? product.images
@@ -556,10 +555,20 @@ export default function ProductDetailScreen({ route, navigation }) {
   const totalQty = groups.reduce((s, g) => s + g.qty, 0);
 
   const handleShareProduct = async () => {
+    if (!product?.id) return;
+
     try {
+      // On web, keep the current host so the link follows the actual deployment.
+      // On native, use the public Kilix web address.
+      const baseUrl = Platform.OS === 'web' && typeof window !== 'undefined'
+        ? window.location.origin + '/kilixappweb'
+        : 'https://samidesjd.github.io/kilixappweb';
+      const productUrl = `${baseUrl}/product/${encodeURIComponent(String(product.id))}`;
+
       await Share.share({
-        title: product?.title || 'تفاصيل المنتج',
-        message: `شاهد هذا المنتج الرائع: ${product?.title || 'المنتج'}\nالسعر: ${priceVal} ${currency}`,
+        title: product.title || 'تفاصيل المنتج',
+        message: `شاهد هذا المنتج على Kilix: ${product.title || 'المنتج'}\nالسعر: ${priceVal} ${currency}\n${productUrl}`,
+        url: productUrl,
       });
     } catch (error) {
       if (__DEV__) console.log('Error sharing product:', error);
