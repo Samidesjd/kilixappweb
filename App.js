@@ -4,7 +4,7 @@ import React from 'react';
 import { I18nManager, View, StyleSheet, Text, Pressable, ActivityIndicator, Modal, Platform, Linking } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
-import { NavigationContainer, getPathFromState, getStateFromPath } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import {
   useFonts as useCairoFonts,
@@ -33,6 +33,8 @@ I18nManager.allowRTL(true);
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 
+const navigationRef = React.createRef();
+
 function LanguageGate() {
   const { language, setLanguage, languages, isLanguageReady, hasSavedLanguage } = useLanguage();
 
@@ -56,7 +58,8 @@ function LanguageGate() {
             <View style={[styles.container, { backgroundColor: colors.background }]}>
               <StatusBar style="dark" />
               <NavigationContainer
-                linking={{
+                ref={navigationRef}
+                linking={Platform.OS === 'web' ? undefined : {
                   prefixes: [
                     'https://samidesjd.github.io/kilixappweb',
                     'kilix://',
@@ -66,41 +69,18 @@ function LanguageGate() {
                       ProductDetail: 'product/:id',
                     },
                   },
-                  getInitialURL: async () => {
-                    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                      return window.location.href;
+                }}
+                onReady={() => {
+                  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                    const productId = new URL(window.location.href).searchParams.get('product');
+                    if (productId) {
+                      setTimeout(() => {
+                        if (navigationRef.isReady()) {
+                          navigationRef.navigate('ProductDetail', { id: productId });
+                        }
+                      }, 0);
                     }
-                    return Linking.getInitialURL();
-                  },
-                  getPathFromState: (state, options) => {
-                    const route = state?.routes?.[state.index ?? 0];
-                    if (route?.name === 'ProductDetail') {
-                      const id = route.params?.id || route.params?.productId || route.params?.product?.id;
-                      if (id) {
-                        return `?product=${encodeURIComponent(String(id))}`;
-                      }
-                    }
-                    return getPathFromState(state, options);
-                  },
-                  getStateFromPath: (path, options) => {
-                    const queryIndex = path.indexOf('?');
-                    if (queryIndex !== -1) {
-                      const query = path.slice(queryIndex + 1);
-                      const params = new URLSearchParams(query);
-                      const productId = params.get('product');
-                      if (productId) {
-                        return {
-                          routes: [
-                            {
-                              name: 'ProductDetail',
-                              params: { id: productId },
-                            },
-                          ],
-                        };
-                      }
-                    }
-                    return getStateFromPath(path, options);
-                  },
+                  }
                 }}
               >
                 <RootNavigator />
