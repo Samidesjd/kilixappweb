@@ -28,13 +28,10 @@ const mapOrder = (row) => ({
   raw: row,
 });
 
-export async function createOrder({ storeId, productId, customerName, phone, deliveryType, wilaya, commune, streetAddress, notes, quantity, details }) {
-  const { data: sessionData } = await supabase.auth.getSession();
-  const isGuest = !sessionData?.session?.user?.id;
-
-  // The database has a dedicated SECURITY DEFINER RPC for guest checkout.
-  // Guests are deliberately not signed in and their order keeps user_id = NULL.
-  const rpcName = isGuest ? 'create_guest_order' : 'create_order';
+export async function createOrder({ storeId, productId, customerName, phone, deliveryType, wilaya, commune, streetAddress, notes, quantity, details, guest = false }) {
+  // ProductDetailScreen explicitly tells us whether this checkout is a guest checkout.
+  // This avoids relying on a possibly stale Supabase browser session.
+  const rpcName = guest ? 'create_guest_order' : 'create_order';
 
   const { data, error } = await supabase.rpc(rpcName, {
     p_store_id: storeId,
@@ -52,7 +49,7 @@ export async function createOrder({ storeId, productId, customerName, phone, del
 
   if (error) throw error;
 
-  return { ...mapOrder(data), guestOrder: isGuest };
+  return { ...mapOrder(data), guestOrder: guest };
 }
 
 export async function getMyOrders(userId, { limit = 50, offset = 0 } = {}) {
