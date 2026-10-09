@@ -19,6 +19,7 @@ import { useData } from '../context/DataContext';
 import ProductCard from '../components/ProductCard';
 import { useFirestoreProducts } from '../hooks/useFirestoreProducts';
 import { splitIntoBalancedColumns } from '../utils/productLayout';
+import { getProductActivity, recordProductInterest, rankPersonalizedProducts } from '../services/productActivityService';
 
 // فلاتر التصنيفات الثابتة في الصفحة الرئيسية — يجب أن تطابق تماماً القيم المسموحة
 // لحقل `category` في مستندات مجموعة 'products' على Firestore
@@ -155,6 +156,27 @@ export default function HomeScreen({ navigation, route }) {
   const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { products, loading: loadingProducts, loadingMore: loadingMoreProducts, hasMore: hasMoreProducts, loadMoreProducts, refreshProducts } = useFirestoreProducts();
+  const [productActivity, setProductActivity] = useState([]);
+
+  const refreshProductActivity = useCallback(async () => {
+    setProductActivity(await getProductActivity());
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshProductActivity();
+    }, [refreshProductActivity])
+  );
+
+  const handleProductInterest = useCallback(async (product, source = 'dwell') => {
+    const nextActivity = await recordProductInterest(product, source);
+    setProductActivity(nextActivity);
+  }, []);
+
+  const recommendedProducts = useMemo(
+    () => rankPersonalizedProducts(products, productActivity, 8, activeCategory),
+    [products, productActivity, activeCategory]
+  );
 
   // عند تغيّر الـ params من خارج (مثلاً من CategoriesScreen) نُحدّث الفئة النشطة
   React.useEffect(() => {
@@ -345,6 +367,25 @@ export default function HomeScreen({ navigation, route }) {
           </TText>
         </View>
 
+        {recommendedProducts.length > 0 && !loadingProducts ? (
+          <View style={styles.recommendationsSection}>
+            <View style={styles.recommendationsHeader}>
+              <View style={styles.recommendationsTitleWrap}>
+                <MaterialIcons name="auto-awesome" size={18} color={colors.orangeVibrant} />
+                <TText style={styles.recommendationsTitle}>منتجات اخترناها لك</TText>
+              </View>
+              <TText style={styles.recommendationsSubtitle}>حسب المنتجات التي اهتممت بها</TText>
+            </View>
+            <ScrollView horizontal inverted showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recommendationsList}>
+              {recommendedProducts.map((p) => (
+                <View key={`recommended-${p.id}`} style={styles.recommendationCard}>
+                  <ProductCard product={p} onPress={() => navigation.navigate('ProductDetail', { product: p })} onInterest={handleProductInterest} />
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+
         {loadingProducts ? (
           <TText style={styles.empty}>جارٍ تحميل المنتجات...</TText>
         ) : filteredProducts.length === 0 ? (
@@ -434,6 +475,13 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   masonryColumn: { flex: 1, gap: spacing.xs },
+  recommendationsSection: { marginTop: spacing.md, marginBottom: spacing.sm },
+  recommendationsHeader: { paddingHorizontal: spacing.md, marginBottom: spacing.sm, gap: 3 },
+  recommendationsTitleWrap: { flexDirection: 'row-reverse', alignItems: 'center', gap: spacing.xs },
+  recommendationsTitle: { ...typography.bodyLg, fontSize: 16, color: colors.charcoalText, fontWeight: '800' },
+  recommendationsSubtitle: { ...typography.bodySm, color: colors.outline, textAlign: 'right' },
+  recommendationsList: { paddingHorizontal: spacing.sm, gap: spacing.sm },
+  recommendationCard: { width: 168 },
   empty: { ...typography.bodySm, color: colors.outline, width: '100%', textAlign: 'center', marginTop: spacing.xl },
   // Header actions: cart is immediately to the left of notifications.
   notificationButton: {
