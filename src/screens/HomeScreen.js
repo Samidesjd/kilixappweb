@@ -255,6 +255,7 @@ export default function HomeScreen({ navigation, route }) {
                       key={p.id}
                       product={p}
                       onPress={() => handleSearchResultPress(p)}
+                      onInterest={handleProductInterest}
                     />
                   ))}
                 </View>
@@ -264,6 +265,7 @@ export default function HomeScreen({ navigation, route }) {
                       key={p.id}
                       product={p}
                       onPress={() => handleSearchResultPress(p)}
+                      onInterest={handleProductInterest}
                     />
                   ))}
                 </View>
@@ -351,12 +353,12 @@ export default function HomeScreen({ navigation, route }) {
           <View style={styles.masonryRow}>
             <View style={styles.masonryColumn}>
               {columnA.map((p) => (
-                <ProductCard key={p.id} product={p} onPress={() => navigation.navigate('ProductDetail', { product: p })} />
+                <ProductCard key={p.id} product={p} onPress={() => navigation.navigate('ProductDetail', { product: p })} onInterest={handleProductInterest} />
               ))}
             </View>
             <View style={styles.masonryColumn}>
               {columnB.map((p) => (
-                <ProductCard key={p.id} product={p} onPress={() => navigation.navigate('ProductDetail', { product: p })} />
+                <ProductCard key={p.id} product={p} onPress={() => navigation.navigate('ProductDetail', { product: p })} onInterest={handleProductInterest} />
               ))}
             </View>
           </View>
