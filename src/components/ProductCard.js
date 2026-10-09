@@ -1,5 +1,5 @@
 import { TText } from '../context/LanguageContext';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Pressable, Image, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography, cardShadow } from '../theme/theme';
@@ -29,7 +29,7 @@ export function getCardImageHeight(product) {
 // كل معلومات المنتج الكاملة (المورد، الحد الأدنى للطلب، الخيارات...) تظهر فقط داخل صفحة التفاصيل.
 // React.memo: يمنع إعادة رسم بطاقة المنتج عند إعادة رسم القائمة الأم
 // طالما لم تتغيّر خصائصها (product, onPress) — مهم جداً لأداء قوائم/شبكات المنتجات
-const ProductCard = React.memo(function ProductCard({ product, onPress }) {
+const ProductCard = React.memo(function ProductCard({ product, onPress, onInterest }) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const fav = isFavorite(product.id);
   const hasDiscount = !!product.oldPrice && product.oldPrice > product.price;
@@ -37,9 +37,25 @@ const ProductCard = React.memo(function ProductCard({ product, onPress }) {
     ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
     : 0;
   const imageHeight = getCardImageHeight(product);
+  const hoverTimerRef = useRef(null);
+
+  const clearHoverTimer = () => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = null;
+  };
+
+  useEffect(() => clearHoverTimer, [product?.id]);
+
+  const handleHoverIn = () => {
+    if (!onInterest || hoverTimerRef.current) return;
+    hoverTimerRef.current = setTimeout(() => {
+      hoverTimerRef.current = null;
+      onInterest(product, 'dwell');
+    }, 3000);
+  };
 
   return (
-    <Pressable style={styles.card} onPress={onPress}>
+    <Pressable style={styles.card} onPress={onPress} onHoverIn={handleHoverIn} onHoverOut={clearHoverTimer}>
       <View style={styles.imageWrap}>
         <Image source={{ uri: product.image }} style={[styles.image, { height: imageHeight }]} resizeMode="cover" />
         {hasDiscount ? (
