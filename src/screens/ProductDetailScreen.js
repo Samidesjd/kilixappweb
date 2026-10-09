@@ -27,6 +27,7 @@ import { useAuth } from '../context/AuthContext';
 import { createOrder } from '../services/orderService';
 import { getProductReviews, getProductRating } from '../services/reviewService';
 import { getProducts, getProduct, getStoreRatingSummary, getProductUnitsSold } from '../services/productService';
+import { recordProductInterest } from '../services/productActivityService';
 import { subscribeToProductReviews, subscribeToStoreProducts, subscribeToProductOrders } from '../services/Realtimeservice';
 import GuestAuthModal from '../components/GuestAuthModal';
 
@@ -348,6 +349,14 @@ export default function ProductDetailScreen({ route, navigation }) {
   const [loadedProduct, setLoadedProduct] = useState(null);
   const [productUnavailable, setProductUnavailable] = useState(false);
   const product = loadedProduct || routeProduct;
+  const lastTrackedProductIdRef = useRef(null);
+
+  useEffect(() => {
+    if (!product?.id || lastTrackedProductIdRef.current === String(product.id)) return;
+    lastTrackedProductIdRef.current = String(product.id);
+    void recordProductInterest(product, 'detail');
+  }, [product?.id]);
+
   useEffect(() => {
     let active = true;
     const productId = route.params?.productId || route.params?.id || routeProduct?.id;
